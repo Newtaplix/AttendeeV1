@@ -21,6 +21,10 @@ interface location{
     lat:number,
     long:number
 }
+interface tokens{
+    access: string,
+    refresh: string
+}
 const LecturerClassesPage = () => {
 
     const [schools, setSchools] = useState([])
@@ -28,12 +32,13 @@ const LecturerClassesPage = () => {
     const [departments, setDepartments] = useState([])
     const [selectedDepartment, setSelectedDepartment] = useState<school>({name: "", id: 1})
     const [courses, setCourses] = useState([])
-    const [starttime, setStarttime] = useState("")
-    const [stoptime, setStoptime] = useState("")
+    const [duration, setDuration] = useState<number>(0)
     const [level, setLevel] = useState("")
     const [selectedCourse, setSelectedCourse] = useState<school>({name: "", id: 0})
     const [loaction, setLoaction] = useState<location>({lat: 0 , long: 0 })
-    const [token, setToken] = useState("")
+    const [tokens, setTokens] = useState<tokens>({access: "", refresh: ""})
+    const [userId, setUserId] = useState("")
+    // const [lecturerCourses, setLecturerCourses] = useState([])
     const BASEURL = "https://attendee-api.onrender.com/Attendee/"
     useEffect(() => {
         const getSchools = async () => {
@@ -65,26 +70,35 @@ const LecturerClassesPage = () => {
         }, [selectedSchool])
 
     useEffect(() => {
-       if (selectedDepartment){
+       if (selectedDepartment &&  selectedSchool){
         const getCourse = async () => {
             try{
                 const response = await axios.get(`${BASEURL}course/${selectedDepartment.id}/`)
                 setCourses(response.data.Courses)
-                console.log(response.data.Courses)
-                console.log(courses)
             }catch(e){
                 console.log(e)
             }
         }
         getCourse()
        }
-    }, [selectedDepartment, courses])
+    }, [selectedDepartment, selectedSchool])
     
     useEffect(() => {
         const token = localStorage.getItem('accessToken')
+        const refreshToken = localStorage.getItem('refreshToken')
         if (token){
-            setToken(token)
-            console.log(token)
+            const getId = async () => {
+                const response = await axios.get(`${BASEURL}user`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                })
+                console.log(response.data.user_id)
+                setUserId(response.data.user_id)
+                
+            }
+            getId()
+            setTokens({access: token || "", refresh: refreshToken || ""})
 
         }else{
             console.log("No token found")
@@ -104,22 +118,38 @@ const LecturerClassesPage = () => {
     }, [])
     const CreateCourse = async () => {
         try{
-            const response = await axios.post(`${BASEURL}lecturer/create-class-sessions/`, {
+            const response = await axios.post(`${BASEURL}lecturer/create-class-sessions/`,{
                 course: selectedCourse.name,
+                lecturer_id: Number(userId),
                 level: level,
-                stopTime: stoptime,
-                startTime: starttime,
+                duration_time: duration,
                 latitude: loaction.lat,
                 longitude: loaction.long,
+            }, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
+                    Authorization: `Bearer ${tokens.access}`,
+                  }
+               
             })
+            console.log(response)
             console.log(response.data)
         }catch(e){
             console.log(e)
         }
     }
+
+    // useEffect(() => {
+    //     const getLecturerCourses = async () => {
+    //         try{
+    //             const response = await axios.get(`${BASEURL}lecturer/class-sessions/${userId}/`)
+    //             setLecturerCourses(response.data)
+    //             console.log(response.data)
+    //         }catch(e){
+    //             console.log(e)
+    //         }
+    //     }
+    //     getLecturerCourses()
+    // }, [])
     
   return (
     <div className='w-full h-full p-2 rounded-md shadow-md bg-white'>
@@ -196,15 +226,9 @@ const LecturerClassesPage = () => {
                                 <Label htmlFor="level">Level</Label>
                                 <Input id="level" type="text" onChange={(e) => setLevel(e.target.value)} placeholder="200" />
                             </div>
-                            <div className="flex gap-3 mt-2">
-                                <div className='flex flex-col flex-1 gap-2'>
+                            <div className='flex flex-col flex-1 gap-2'>
                                     <Label htmlFor="starttime">Start Time</Label>
-                                    <Input id="starttime" type="time" onChange={(e) => setStarttime(e.target.value)} placeholder="Time" />
-                                </div>
-                                <div className='flex flex-col flex-1 gap-2'>
-                                <Label htmlFor="endtime">End Time</Label>
-                                <Input id="endtime" type="time" onChange={(e) => setStoptime(e.target.value)} placeholder="Time" />
-                                </div>
+                                    <Input id="starttime" type="text" onChange={(e) => setDuration(Number(e.target.value))} placeholder="Time" />
                             </div>
                            
                         </div>
