@@ -8,6 +8,8 @@ const Dashboard = () => {
 
     const [role, setRole] = useState("")
     const BASEURL = "https://attendee-api.onrender.com/Attendee/"
+    
+  
     useEffect(() => {
       const token = localStorage.getItem("accessToken")
       if (token) {
@@ -19,7 +21,8 @@ const Dashboard = () => {
               },
             })
             console.log(response.data)
-            setRole(response.data.role)
+            console.log(response.data.user[0].user_id)
+            setRole(response.data.user[0].role)
           } catch (error) {
             console.error("Error fetching user info:", error)
           }
@@ -27,6 +30,7 @@ const Dashboard = () => {
         getUserInfo()
       }
     })
+    
 
     
 

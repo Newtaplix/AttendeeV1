@@ -46,8 +46,7 @@ const SideBar = () => {
 
     const Logout = async () => {
         try{
-            const response = await axios.post("https://attendee-api.onrender.com/Attendee/logout/", {
-                refresh: token},
+            const response = await axios.post("https://attendee-api.onrender.com/Attendee/logout/",
                {
                 headers: {
                     "Content-Type": "application/json",
@@ -64,7 +63,7 @@ const SideBar = () => {
     }
     console.log(present)
   return (
-    <div className='w-[60%] lg:w-[20%] h-full border bg-white absolute md:relative'>
+    <div className='w-[60%] lg:w-[20%] h-full border bg-white absolute hidden md:relative'>
         <div className='border-b-2 py-3'>
             <h1 className='text-4xl font-bold'>Attendee</h1>
         </div>
